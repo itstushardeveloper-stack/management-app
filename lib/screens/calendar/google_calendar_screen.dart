@@ -75,7 +75,6 @@ class _GoogleCalendarScreenState extends State<GoogleCalendarScreen> {
     final state = Provider.of<AppState>(context);
     final selectedDate = state.selectedDate;
     final view = state.calendarView;
-    final halls = state.halls;
 
     final filteredEvents = state.events;
 

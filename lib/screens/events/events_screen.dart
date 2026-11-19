@@ -134,25 +134,26 @@ class _EventsScreenState extends State<EventsScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 8),
-
-                    // Hall Dropdown Filter
-                    DropdownButton<int?>(
-                      value: _selectedHallId,
-                      hint: const Text('All Halls', style: TextStyle(fontSize: 12)),
-                      underline: const SizedBox(),
-                      items: [
-                        const DropdownMenuItem<int?>(value: null, child: Text('All Halls', style: TextStyle(fontSize: 12))),
-                        ...halls.map((h) => DropdownMenuItem<int?>(
-                              value: h.id,
-                              child: Text(h.name.split('(')[0], style: const TextStyle(fontSize: 12)),
-                            )),
-                      ],
-                      onChanged: (val) {
-                        setState(() => _selectedHallId = val);
-                        _applyFilter();
-                      },
-                    ),
+                    if (halls.isNotEmpty) ...[
+                      const SizedBox(width: 8),
+                      // Hall Dropdown Filter
+                      DropdownButton<int?>(
+                        value: _selectedHallId,
+                        hint: const Text('All Halls', style: TextStyle(fontSize: 12)),
+                        underline: const SizedBox(),
+                        items: [
+                          const DropdownMenuItem<int?>(value: null, child: Text('All Halls', style: TextStyle(fontSize: 12))),
+                          ...halls.map((h) => DropdownMenuItem<int?>(
+                                value: h.id,
+                                child: Text(h.name.split('(')[0], style: const TextStyle(fontSize: 12)),
+                              )),
+                        ],
+                        onChanged: (val) {
+                          setState(() => _selectedHallId = val);
+                          _applyFilter();
+                        },
+                      ),
+                    ],
                   ],
                 ),
               ],

@@ -23,6 +23,7 @@ class Store {
     this.selectedCalendarDate = new Date();
     this.calendarView = 'month'; // month, week, day, agenda
     this.calendarHallFilter = null;
+    this.customerSearch = '';
     this.enquirySearch = '';
     this.enquiryStatusFilter = 'All';
     this.eventSearch = '';
@@ -302,7 +303,7 @@ function renderDashboardView() {
               <div onclick="openEventDetail(${evt.id})" class="p-3 bg-slate-50 hover:bg-blue-50/50 border border-slate-200 rounded-xl cursor-pointer transition flex items-center justify-between">
                 <div>
                   <div class="font-bold text-xs text-slate-900">${evt.customerName} - ${evt.eventType}</div>
-                  <div class="text-[11px] text-slate-500 mt-0.5">${evt.hallName.split('(')[0]} • ${formatDate(evt.eventDate)} (${evt.startTime} – ${evt.endTime})</div>
+                  <div class="text-[11px] text-slate-500 mt-0.5">${(evt.hallName || 'Venue').split('(')[0]} • ${formatDate(evt.eventDate)} (${evt.startTime} – ${evt.endTime})</div>
                 </div>
                 <div class="text-right">
                   <div class="font-bold text-xs text-slate-800 font-mono">${formatCurrency(evt.totalCost)}</div>
@@ -432,11 +433,7 @@ function renderCalendarView() {
   const currentMonthYear = selDate.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
   const view = store.calendarView;
 
-  // Filter events by selected hall if set
   let calendarEvents = store.data.events.filter(e => e.status !== 'Cancelled');
-  if (store.calendarHallFilter) {
-    calendarEvents = calendarEvents.filter(e => e.hallId == store.calendarHallFilter);
-  }
 
   return `
     <div class="h-full flex flex-col space-y-3 max-w-7xl mx-auto">
@@ -563,7 +560,7 @@ function renderMonthGrid(events) {
                     <span class="font-bold text-xs text-slate-900">${evt.customerName}</span>
                     <span class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800">Confirmed</span>
                   </div>
-                  <div class="text-[11px] text-slate-600 mt-0.5">${evt.eventType} • ${evt.hallName.split('(')[0]} (${evt.startTime} – ${evt.endTime})</div>
+                  <div class="text-[11px] text-slate-600 mt-0.5">${evt.eventType} • ${(evt.hallName || 'Venue').split('(')[0]} (${evt.startTime} – ${evt.endTime})</div>
                   <div class="text-[11px] font-bold text-brand mt-1">${formatCurrency(evt.totalCost)}</div>
                 </div>
                 <i class="fa-solid fa-chevron-right text-xs text-slate-400"></i>
@@ -626,7 +623,7 @@ function renderDayGrid(events) {
       </div>
 
       ${dayEvents.length === 0 ? `
-        <div class="p-12 text-center text-slate-400 text-xs">No bookings for this date. All venue halls are completely free.</div>
+        <div class="p-12 text-center text-slate-400 text-xs">No bookings for this date. The venue is completely free.</div>
       ` : `
         <div class="space-y-3">
           ${dayEvents.map(ev => `
@@ -636,7 +633,7 @@ function renderDayGrid(events) {
                   <h4 class="font-bold text-sm text-slate-900">${ev.eventType} - ${ev.customerName}</h4>
                   <span class="text-xs px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800">Confirmed</span>
                 </div>
-                <p class="text-xs text-slate-600 mt-1">${ev.hallName} • ${ev.startTime} – ${ev.endTime} • ${ev.guests} Guests</p>
+                <p class="text-xs text-slate-600 mt-1">${ev.hallName ? ev.hallName + ' • ' : ''}${ev.startTime} – ${ev.endTime} • ${ev.guests} Guests</p>
                 <p class="text-xs font-bold text-brand mt-1 font-mono">${formatCurrency(ev.totalCost)} (Balance: ${formatCurrency(ev.balanceDue)})</p>
               </div>
               <button class="text-xs font-bold py-2 px-3.5 bg-slate-100 hover:bg-slate-200 rounded-lg">View Popup</button>
@@ -661,7 +658,7 @@ function renderAgendaGrid(events) {
             </div>
             <div>
               <h4 class="font-bold text-xs text-slate-900">${ev.customerName} - ${ev.eventType}</h4>
-              <p class="text-[11px] text-slate-500">${ev.hallName.split('(')[0]} • ${ev.startTime} – ${ev.endTime}</p>
+              <p class="text-[11px] text-slate-500">${(ev.hallName || 'Venue').split('(')[0]} • ${ev.startTime} – ${ev.endTime}</p>
             </div>
           </div>
           <div class="font-bold text-xs text-slate-900 font-mono">${formatCurrency(ev.totalCost)}</div>
@@ -736,7 +733,13 @@ function renderEventsView() {
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        ${list.map(ev => `
+        ${list.length === 0 ? `
+          <div class="col-span-full py-12 text-center bg-white rounded-2xl border border-slate-200 shadow-sm">
+            <i class="fa-solid fa-calendar-xmark text-4xl text-slate-300 mb-3 block"></i>
+            <h4 class="text-sm font-bold text-slate-700">No bookings found</h4>
+            <p class="text-xs text-slate-400 mt-1">No bookings match your current search criteria.</p>
+          </div>
+        ` : list.map(ev => `
           <div onclick="openEventDetail(${ev.id})" class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:border-emerald-400 transition cursor-pointer flex flex-col justify-between">
             <div>
               <div class="flex items-start justify-between gap-2 mb-2">
@@ -777,28 +780,52 @@ function renderEventsView() {
 // 5. CUSTOMER DIRECTORY VIEW
 // -------------------------------------------------------------
 function renderCustomersView() {
+  let list = store.data.customers;
+  if (store.customerSearch) {
+    const q = store.customerSearch.toLowerCase();
+    list = list.filter(c => c.name.toLowerCase().includes(q) || c.phone.includes(q) || (c.email && c.email.toLowerCase().includes(q)));
+  }
+
   return `
     <div class="space-y-4 max-w-7xl mx-auto">
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-3 items-center justify-between">
+        <div class="relative w-full sm:w-80">
+          <i class="fa-solid fa-search absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+          <input type="text" placeholder="Search customers by name, phone..." value="${store.customerSearch || ''}" oninput="store.customerSearch = this.value; renderSectionContent('customers')" class="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand outline-none">
+        </div>
+        <button onclick="openModal('addCustomerModal')" class="w-full sm:w-auto py-2 px-4 bg-brand text-white font-bold text-xs rounded-xl shadow-sm flex items-center justify-center gap-2">
+          <i class="fa-solid fa-user-plus"></i> Add Customer
+        </button>
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        ${store.data.customers.map(c => `
-          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-            <div class="flex items-center gap-3 mb-3">
-              <div class="w-10 h-10 rounded-full bg-blue-100 text-brand flex items-center justify-center font-bold text-sm">
-                ${c.name.substring(0, 2).toUpperCase()}
+        ${list.length === 0 ? `
+          <div class="col-span-full py-12 text-center bg-white rounded-2xl border border-slate-200 shadow-sm">
+            <i class="fa-solid fa-users text-4xl text-slate-300 mb-3 block"></i>
+            <h4 class="text-sm font-bold text-slate-700">No customer records</h4>
+            <p class="text-xs text-slate-400 mt-1">Customers will automatically appear here as enquiries and bookings are created, or you can add one manually.</p>
+          </div>
+        ` : list.map(c => `
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:border-blue-300 transition flex flex-col justify-between">
+            <div>
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-full bg-blue-100 text-brand flex items-center justify-center font-bold text-sm">
+                  ${(c.name || 'C').substring(0, 2).toUpperCase()}
+                </div>
+                <div>
+                  <h4 class="font-bold text-sm text-slate-900">${c.name}</h4>
+                  <a href="tel:${c.phone}" class="text-xs text-brand font-semibold hover:underline">${c.phone}</a>
+                </div>
               </div>
-              <div>
-                <h4 class="font-bold text-sm text-slate-900">${c.name}</h4>
-                <a href="tel:${c.phone}" class="text-xs text-brand font-semibold hover:underline">${c.phone}</a>
+
+              <div class="space-y-1 text-xs text-slate-500 bg-slate-50 p-3 rounded-xl mb-3">
+                ${c.email ? `<div><i class="fa-solid fa-envelope mr-1.5 text-slate-400"></i> ${c.email}</div>` : ''}
+                ${c.address ? `<div><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i> ${c.address}</div>` : '<div class="text-slate-400 italic">No address on file</div>'}
               </div>
             </div>
 
-            <div class="space-y-1 text-xs text-slate-500 bg-slate-50 p-3 rounded-xl mb-3">
-              ${c.email ? `<div><i class="fa-solid fa-envelope mr-1.5 text-slate-400"></i> ${c.email}</div>` : ''}
-              ${c.address ? `<div><i class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i> ${c.address}</div>` : ''}
-            </div>
-
-            <div class="flex justify-end gap-2">
-              <a href="tel:${c.phone}" class="py-1 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold">Call</a>
+            <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <a href="tel:${c.phone}" class="py-1 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5"><i class="fa-solid fa-phone text-[10px]"></i> Call</a>
             </div>
           </div>
         `).join('')}
@@ -824,7 +851,7 @@ function renderFinanceView() {
         <div class="flex items-center justify-between mb-3">
           <div>
             <h3 class="font-bold text-sm text-slate-900">Enquiry-to-Booking Conversion Rate</h3>
-            <p class="text-xs text-slate-500">Sales pipeline tracking from initial enquiry to confirmed hall reservation</p>
+            <p class="text-xs text-slate-500">Sales pipeline tracking from initial enquiry to confirmed reservation</p>
           </div>
           <span class="text-xl font-bold text-brand font-mono">${conversionRate}%</span>
         </div>
@@ -857,7 +884,9 @@ function renderFinanceView() {
         </div>
 
         <div class="space-y-2">
-          ${store.data.payments.map(p => {
+          ${store.data.payments.length === 0 ? `
+            <div class="p-8 text-center text-slate-400 text-xs">No payments recorded yet. Record advances or payments against confirmed events.</div>
+          ` : store.data.payments.map(p => {
     const ev = store.data.events.find(e => e.id === p.eventId);
     return `
               <div class="p-3 bg-slate-50 rounded-xl flex items-center justify-between text-xs">
@@ -875,12 +904,19 @@ function renderFinanceView() {
       <!-- Operational Expenses -->
       <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="font-bold text-sm text-slate-900">Venue Expenses</h3>
-          <span class="text-xs font-mono font-bold text-rose-600">Total: ${formatCurrency(totalExpenses)}</span>
+          <div class="flex items-center gap-3">
+            <h3 class="font-bold text-sm text-slate-900">Venue Expenses</h3>
+            <span class="text-xs font-mono font-bold text-rose-600">Total: ${formatCurrency(totalExpenses)}</span>
+          </div>
+          <button onclick="openModal('addExpenseModal')" class="py-1.5 px-3 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-plus text-[10px]"></i> Add Expense
+          </button>
         </div>
 
         <div class="space-y-2">
-          ${store.data.expenses.map(ex => `
+          ${store.data.expenses.length === 0 ? `
+            <div class="p-8 text-center text-slate-400 text-xs">No expenses recorded yet. Click "+ Add Expense" to track venue operating costs.</div>
+          ` : store.data.expenses.map(ex => `
             <div class="p-3 bg-slate-50 rounded-xl flex items-center justify-between text-xs">
               <div>
                 <div class="font-bold text-slate-800">${ex.title}</div>
@@ -1104,6 +1140,9 @@ function handleConvertSubmit(e) {
     date: new Date().toISOString().split('T')[0]
   });
 
+  // Ensure customer record is synchronized
+  ensureCustomer(enq.customerName, enq.phone, enq.email);
+
   store.save();
   closeModal();
   switchTab('calendar');
@@ -1132,6 +1171,7 @@ function handleNewEnquirySubmit(e) {
   };
 
   store.data.enquiries.unshift(newEnq);
+  ensureCustomer(newEnq.customerName, newEnq.phone);
   store.save();
   closeModal();
   switchTab('enquiries');
@@ -1174,6 +1214,8 @@ function handleNewEventSubmit(e) {
       ref: 'Advance on booking'
     });
   }
+
+  ensureCustomer(newEvent.customerName, newEvent.phone);
 
   store.save();
   closeModal();
@@ -1234,11 +1276,71 @@ function promptAddFollowUp() {
 
 function cancelCurrentEvent() {
   if (!store.currentDetailItem) return;
-  if (confirm(`Are you sure you want to cancel booking ${store.currentDetailItem.eventNumber}? This releases the hall.`)) {
+  if (confirm(`Are you sure you want to cancel booking ${store.currentDetailItem.eventNumber}? This releases the reservation.`)) {
     store.currentDetailItem.status = 'Cancelled';
     store.save();
     closeModal();
     switchTab('events');
+  }
+}
+
+function ensureCustomer(name, phone, email = '', address = '') {
+  if (!name || !phone) return;
+  let existing = store.data.customers.find(c => c.phone === phone || c.name.toLowerCase() === name.toLowerCase());
+  if (!existing) {
+    store.data.customers.push({
+      id: Date.now() + Math.floor(Math.random() * 1000),
+      name: name,
+      phone: phone,
+      email: email,
+      address: address
+    });
+  } else {
+    if (email && !existing.email) existing.email = email;
+    if (address && !existing.address) existing.address = address;
+  }
+}
+
+function handleAddCustomerSubmit(e) {
+  e.preventDefault();
+  const name = document.getElementById('custName').value.trim();
+  const phone = document.getElementById('custPhone').value.trim();
+  const email = document.getElementById('custEmail').value.trim();
+  const address = document.getElementById('custAddress').value.trim();
+
+  ensureCustomer(name, phone, email, address);
+  store.save();
+  closeModal();
+  e.target.reset();
+  if (store.currentTab === 'customers') {
+    renderSectionContent('customers');
+  } else {
+    switchTab('customers');
+  }
+}
+
+function handleAddExpenseSubmit(e) {
+  e.preventDefault();
+  const title = document.getElementById('expTitle').value.trim();
+  const amount = Number(document.getElementById('expAmount').value);
+  const category = document.getElementById('expCategory').value;
+  const date = document.getElementById('expDate').value;
+
+  store.data.expenses.unshift({
+    id: Date.now(),
+    title: title,
+    amount: amount,
+    category: category,
+    date: date
+  });
+
+  store.save();
+  closeModal();
+  e.target.reset();
+  if (store.currentTab === 'finance') {
+    renderSectionContent('finance');
+  } else if (store.currentTab === 'dashboard') {
+    renderSectionContent('dashboard');
   }
 }
 

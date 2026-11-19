@@ -66,7 +66,6 @@ Net Profit: ${CurrencyFormatters.format(state.netProfit)}
 Total Enquiries Received: $totalEnquiries
 Confirmed Bookings: $confirmedEvents
 Enquiry-to-Booking Conversion Rate: $conversionRate%
-Active Halls: ${state.halls.where((h) => h.isActive).length}
 ''';
 
     Share.share(summary, subject: 'Event Venue Financial Report');

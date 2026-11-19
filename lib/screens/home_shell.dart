@@ -113,7 +113,7 @@ class HomeShell extends StatelessWidget {
                   const Icon(Icons.apartment, color: Colors.white, size: 36),
                   const SizedBox(height: 8),
                   const Text('Event & Venue Manager', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                  Text('${state.halls.length} Halls • ${state.events.length} Bookings', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                  Text('${state.events.length} Bookings • ${state.enquiries.length} Enquiries', style: const TextStyle(color: Colors.white70, fontSize: 12)),
                 ],
               ),
             ),

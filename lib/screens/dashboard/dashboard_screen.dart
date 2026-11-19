@@ -249,7 +249,7 @@ class DashboardScreen extends StatelessWidget {
                   ),
                   child: const Center(
                     child: Text(
-                      'No events booked for today. All halls available!',
+                      'No events booked for today. Venue is completely available!',
                       style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
                     ),
                   ),
