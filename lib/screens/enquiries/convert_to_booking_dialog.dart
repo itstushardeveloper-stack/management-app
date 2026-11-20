@@ -70,7 +70,6 @@ class _ConvertToBookingDialogState extends State<ConvertToBookingDialog> {
       setState(() {
         _eventDate = picked;
       });
-      _checkHallAvailability();
     }
   }
 
@@ -355,7 +354,7 @@ class _ConvertToBookingDialogState extends State<ConvertToBookingDialog> {
                         ),
                         icon: const Icon(Icons.check_circle_outline),
                         label: const Text('Confirm & Create Event'),
-                        onPressed: _isAvailable ? _convert : null,
+                        onPressed: _convert,
                       ),
                     ],
                   ),
