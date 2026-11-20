@@ -261,7 +261,7 @@ class _EnquiryDetailSheetState extends State<EnquiryDetailSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Action Bar (Call, Follow-up, Convert)
+                  // Action Bar (Call, Edit, Follow-up, Convert)
                   Row(
                     children: [
                       Expanded(
@@ -271,11 +271,23 @@ class _EnquiryDetailSheetState extends State<EnquiryDetailSheet> {
                             padding: const EdgeInsets.symmetric(vertical: 12),
                           ),
                           icon: const Icon(Icons.phone),
-                          label: const Text('Call Customer'),
+                          label: const Text('Call'),
                           onPressed: _callCustomer,
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.primary,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          icon: const Icon(Icons.edit_outlined),
+                          label: const Text('Edit'),
+                          onPressed: _editEnquiry,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: OutlinedButton.icon(
                           style: OutlinedButton.styleFrom(

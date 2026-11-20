@@ -267,6 +267,18 @@ class _EventDetailPopupState extends State<EventDetailPopup> {
                           Expanded(
                             child: OutlinedButton.icon(
                               style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.primary,
+                                side: const BorderSide(color: AppColors.primary),
+                              ),
+                              icon: const Icon(Icons.edit_outlined, size: 18),
+                              label: const Text('Edit Event'),
+                              onPressed: _editEvent,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
                                 foregroundColor: AppColors.confirmed,
                                 side: const BorderSide(color: AppColors.confirmed),
                               ),

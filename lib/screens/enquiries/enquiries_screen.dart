@@ -55,6 +55,16 @@ class _EnquiriesScreenState extends State<EnquiriesScreen> {
     );
   }
 
+  void _editEnquiry(Enquiry enquiry) async {
+    final updated = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AddEditEnquiryDialog(enquiry: enquiry),
+    );
+    if (updated == true) {
+      _applyFilter();
+    }
+  }
+
   void _callCustomer(String phone) async {
     final uri = Uri.parse('tel:${phone.replaceAll(RegExp(r'[^0-9+]'), '')}');
     try {
@@ -291,6 +301,11 @@ class _EnquiriesScreenState extends State<EnquiriesScreen> {
                                           icon: const Icon(Icons.phone, color: AppColors.primary, size: 20),
                                           tooltip: 'Call ${enq.phone}',
                                           onPressed: () => _callCustomer(enq.phone),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.edit_outlined, color: AppColors.textSecondary, size: 20),
+                                          tooltip: 'Edit Enquiry',
+                                          onPressed: () => _editEnquiry(enq),
                                         ),
                                         if (!enq.isConverted)
                                           TextButton.icon(

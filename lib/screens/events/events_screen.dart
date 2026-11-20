@@ -42,6 +42,16 @@ class _EventsScreenState extends State<EventsScreen> {
     );
   }
 
+  void _editEvent(EventBooking event) async {
+    final updated = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AddEditEventDialog(event: event),
+    );
+    if (updated == true) {
+      _applyFilter();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = Provider.of<AppState>(context);
@@ -256,7 +266,22 @@ class _EventsScreenState extends State<EventsScreen> {
                                           ),
                                       ],
                                     ),
-                                    const Text('View details >', style: TextStyle(fontSize: 12, color: AppColors.primary)),
+                                    Row(
+                                      children: [
+                                        OutlinedButton.icon(
+                                          style: OutlinedButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                            minimumSize: Size.zero,
+                                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                          ),
+                                          icon: const Icon(Icons.edit_outlined, size: 14),
+                                          label: const Text('Edit', style: TextStyle(fontSize: 12)),
+                                          onPressed: () => _editEvent(ev),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        const Text('View details >', style: TextStyle(fontSize: 12, color: AppColors.primary)),
+                                      ],
+                                    ),
                                   ],
                                 ),
                               ],

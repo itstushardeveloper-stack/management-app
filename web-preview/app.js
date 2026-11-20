@@ -393,11 +393,14 @@ function renderEnquiriesView() {
                 </a>
 
                 <div class="flex items-center gap-2">
+                  <button onclick="event.stopPropagation(); openEditEnquiry(${enq.id})" class="text-xs font-semibold py-1.5 px-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg flex items-center gap-1">
+                    <i class="fa-solid fa-pen-to-square text-[10px]"></i> Edit
+                  </button>
                   <button onclick="openEnquiryDetail(${enq.id})" class="text-xs font-semibold py-1.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg">
                     Details
                   </button>
                   ${!isConverted ? `
-                    <button onclick="openConvertModal(${enq.id})" class="text-xs font-bold py-1.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-1">
+                    <button onclick="event.stopPropagation(); openConvertModal(${enq.id})" class="text-xs font-bold py-1.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-1">
                       <i class="fa-solid fa-check"></i> Convert
                     </button>
                   ` : `
@@ -762,11 +765,16 @@ function renderEventsView() {
                 <span class="text-slate-400 block text-[10px]">Agreed Total</span>
                 <span class="font-bold text-slate-900 font-mono text-sm">${formatCurrency(ev.totalCost)}</span>
               </div>
-              <div class="text-right">
-                <span class="text-slate-400 block text-[10px]">Balance Due</span>
-                <span class="font-bold font-mono text-sm ${ev.balanceDue > 0 ? 'text-rose-600' : 'text-emerald-600'}">
-                  ${ev.balanceDue > 0 ? formatCurrency(ev.balanceDue) : 'Paid in Full'}
-                </span>
+              <div class="flex items-center gap-2">
+                <button onclick="event.stopPropagation(); openEditEvent(${ev.id})" class="py-1 px-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1 transition">
+                  <i class="fa-solid fa-pen-to-square text-[10px]"></i> Edit
+                </button>
+                <div class="text-right">
+                  <span class="text-slate-400 block text-[10px]">Balance Due</span>
+                  <span class="font-bold font-mono text-sm ${ev.balanceDue > 0 ? 'text-rose-600' : 'text-emerald-600'}">
+                    ${ev.balanceDue > 0 ? formatCurrency(ev.balanceDue) : 'Paid in Full'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -1347,4 +1355,136 @@ function handleAddExpenseSubmit(e) {
 function toggleMobileMenu() {
   alert("Navigate using the bottom navigation bar or top buttons!");
 }
+
+// -------------------------------------------------------------
+// EDIT DATA HANDLERS (Events & Enquiries)
+// -------------------------------------------------------------
+function openEditEvent(id) {
+  const ev = store.data.events.find(e => e.id === id);
+  if (!ev) return;
+  document.getElementById('editEvId').value = ev.id;
+  document.getElementById('editEvNumberBadge').innerText = ev.eventNumber;
+  document.getElementById('editEvName').value = ev.customerName || '';
+  document.getElementById('editEvPhone').value = ev.phone || '';
+  document.getElementById('editEvType').value = ev.eventType || '';
+  document.getElementById('editEvGuests').value = ev.guests || '';
+  document.getElementById('editEvDate').value = ev.eventDate || '';
+  document.getElementById('editEvTimings').value = `${ev.startTime || '10:00 AM'} – ${ev.endTime || '5:00 PM'}`;
+  document.getElementById('editEvTotalCost').value = ev.totalCost || 0;
+  document.getElementById('editEvStatus').value = ev.status || 'Confirmed';
+  document.getElementById('editEvNotes').value = ev.notes || '';
+
+  openModal('editEventModal');
+}
+
+function openEditCurrentEvent() {
+  if (store.currentDetailItem && store.currentDetailItem.id) {
+    openEditEvent(store.currentDetailItem.id);
+  }
+}
+
+function handleEditEventSubmit(e) {
+  e.preventDefault();
+  const id = Number(document.getElementById('editEvId').value);
+  const ev = store.data.events.find(e => e.id === id);
+  if (!ev) return;
+
+  const totalCost = Number(document.getElementById('editEvTotalCost').value);
+  const timings = document.getElementById('editEvTimings').value.split('–').map(s => s.trim());
+  const startTime = timings[0] || ev.startTime || '10:00 AM';
+  const endTime = timings[1] || ev.endTime || '5:00 PM';
+
+  ev.customerName = document.getElementById('editEvName').value.trim();
+  ev.phone = document.getElementById('editEvPhone').value.trim();
+  ev.eventType = document.getElementById('editEvType').value.trim();
+  ev.guests = Number(document.getElementById('editEvGuests').value);
+  ev.eventDate = document.getElementById('editEvDate').value;
+  ev.startTime = startTime;
+  ev.endTime = endTime;
+  ev.totalCost = totalCost;
+  ev.status = document.getElementById('editEvStatus').value;
+  ev.notes = document.getElementById('editEvNotes').value.trim();
+  ev.balanceDue = Math.max(0, ev.totalCost - (ev.advancePaid || 0));
+
+  ensureCustomer(ev.customerName, ev.phone);
+  store.save();
+  closeModal();
+
+  renderSidebar();
+  renderMobileNav();
+  if (store.currentTab === 'events') {
+    renderSectionContent('events');
+  } else if (store.currentTab === 'calendar') {
+    renderSectionContent('calendar');
+  } else if (store.currentTab === 'dashboard') {
+    renderSectionContent('dashboard');
+  }
+}
+
+function openEditEnquiry(id) {
+  const enq = store.data.enquiries.find(e => e.id === id);
+  if (!enq) return;
+  document.getElementById('editEnqId').value = enq.id;
+  document.getElementById('editEnqNumberBadge').innerText = enq.enquiryNumber;
+  document.getElementById('editEnqName').value = enq.customerName || '';
+  document.getElementById('editEnqPhone').value = enq.phone || '';
+  document.getElementById('editEnqType').value = enq.eventType || '';
+  document.getElementById('editEnqGuests').value = enq.guests || '';
+  document.getElementById('editEnqDate').value = enq.preferredDate || '';
+  document.getElementById('editEnqTime').value = enq.preferredTime || '';
+  document.getElementById('editEnqBudget').value = enq.expectedBudget || 0;
+  document.getElementById('editEnqStatus').value = enq.status || 'New';
+  document.getElementById('editEnqNotes').value = enq.notes || '';
+
+  openModal('editEnquiryModal');
+}
+
+function openEditCurrentEnquiry() {
+  if (store.currentDetailItem && store.currentDetailItem.id) {
+    openEditEnquiry(store.currentDetailItem.id);
+  }
+}
+
+function handleEditEnquirySubmit(e) {
+  e.preventDefault();
+  const id = Number(document.getElementById('editEnqId').value);
+  const enq = store.data.enquiries.find(e => e.id === id);
+  if (!enq) return;
+
+  const oldStatus = enq.status;
+  const newStatus = document.getElementById('editEnqStatus').value;
+
+  enq.customerName = document.getElementById('editEnqName').value.trim();
+  enq.phone = document.getElementById('editEnqPhone').value.trim();
+  enq.eventType = document.getElementById('editEnqType').value.trim();
+  enq.guests = Number(document.getElementById('editEnqGuests').value);
+  enq.preferredDate = document.getElementById('editEnqDate').value;
+  enq.preferredTime = document.getElementById('editEnqTime').value.trim();
+  enq.expectedBudget = Number(document.getElementById('editEnqBudget').value);
+  enq.status = newStatus;
+  enq.notes = document.getElementById('editEnqNotes').value.trim();
+
+  if (oldStatus !== newStatus) {
+    store.data.followUps.unshift({
+      id: Date.now(),
+      enquiryId: enq.id,
+      note: `Status changed from ${oldStatus} to ${newStatus} during lead edit`,
+      newStatus: newStatus,
+      date: new Date().toISOString().split('T')[0]
+    });
+  }
+
+  ensureCustomer(enq.customerName, enq.phone);
+  store.save();
+  closeModal();
+
+  renderSidebar();
+  renderMobileNav();
+  if (store.currentTab === 'enquiries') {
+    renderSectionContent('enquiries');
+  } else if (store.currentTab === 'dashboard') {
+    renderSectionContent('dashboard');
+  }
+}
+
 
