@@ -39,6 +39,7 @@ class AppState extends ChangeNotifier {
   List<EventBooking> _events = [];
   List<Hall> _halls = [];
   List<Customer> _customers = [];
+  List<Expense> _expenses = [];
   List<Enquiry> _followUpReminders = [];
   List<EventBooking> _todayEvents = [];
 
@@ -61,6 +62,7 @@ class AppState extends ChangeNotifier {
   List<EventBooking> get events => _events;
   List<Hall> get halls => _halls;
   List<Customer> get customers => _customers;
+  List<Expense> get expenses => _expenses;
   List<Enquiry> get followUpReminders => _followUpReminders;
   List<EventBooking> get todayEvents => _todayEvents;
   double get totalIncome => _totalIncome;
@@ -104,8 +106,15 @@ class AppState extends ChangeNotifier {
       loadEvents(),
       loadHalls(),
       loadCustomers(),
+      loadExpenses(),
       loadDashboardStats(),
     ]);
+    notifyListeners();
+  }
+
+  // Expenses Operations
+  Future<void> loadExpenses() async {
+    _expenses = await _expenseRepo.getAllExpenses();
     notifyListeners();
   }
 
@@ -267,11 +276,13 @@ class AppState extends ChangeNotifier {
     } else {
       await _expenseRepo.updateExpense(expense);
     }
+    await loadExpenses();
     await loadDashboardStats();
   }
 
   Future<void> deleteExpense(int id) async {
     await _expenseRepo.deleteExpense(id);
+    await loadExpenses();
     await loadDashboardStats();
   }
 
