@@ -5,7 +5,6 @@ import '../../core/utils/currency_formatters.dart';
 import '../../core/utils/date_formatters.dart';
 import '../../data/models/enquiry.dart';
 import '../../data/models/event_booking.dart';
-import '../../data/models/hall.dart';
 import '../../providers/app_state.dart';
 
 class ConvertToBookingDialog extends StatefulWidget {
@@ -27,12 +26,7 @@ class _ConvertToBookingDialogState extends State<ConvertToBookingDialog> {
   late DateTime _eventDate;
   late String _startTime;
   late String _endTime;
-  int? _selectedHallId;
-  String? _selectedHallName;
   String _paymentMethod = 'UPI/Online';
-  bool _isCheckingAvailability = false;
-  String? _availabilityWarning;
-  bool _isAvailable = true;
 
   final List<String> _paymentMethods = [
     'UPI/Online',
@@ -49,18 +43,12 @@ class _ConvertToBookingDialogState extends State<ConvertToBookingDialog> {
     _eventDate = e.preferredDate;
     _startTime = e.startTime ?? '10:00 AM';
     _endTime = e.endTime ?? '05:00 PM';
-    _selectedHallId = e.preferredHallId;
-    _selectedHallName = e.preferredHallName;
 
     _totalCostController = TextEditingController(
       text: e.expectedBudget > 0 ? e.expectedBudget.toStringAsFixed(0) : '50000',
     );
     _advanceController = TextEditingController(text: '10000');
     _notesController = TextEditingController(text: e.notes ?? '');
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkHallAvailability();
-    });
   }
 
   @override
@@ -69,37 +57,6 @@ class _ConvertToBookingDialogState extends State<ConvertToBookingDialog> {
     _advanceController.dispose();
     _notesController.dispose();
     super.dispose();
-  }
-
-  Future<void> _checkHallAvailability() async {
-    if (_selectedHallId == null) {
-      setState(() {
-        _isAvailable = false;
-        _availabilityWarning = 'Please select a hall to verify availability.';
-      });
-      return;
-    }
-
-    setState(() {
-      _isCheckingAvailability = true;
-      _availabilityWarning = null;
-    });
-
-    final state = Provider.of<AppState>(context, listen: false);
-    final res = await state.checkHallAvailability(
-      hallId: _selectedHallId!,
-      date: _eventDate,
-      startTime: _startTime,
-      endTime: _endTime,
-    );
-
-    if (mounted) {
-      setState(() {
-        _isCheckingAvailability = false;
-        _isAvailable = res.isAvailable;
-        _availabilityWarning = res.conflictReason;
-      });
-    }
   }
 
   Future<void> _pickDate() async {
@@ -120,23 +77,6 @@ class _ConvertToBookingDialogState extends State<ConvertToBookingDialog> {
   void _convert() async {
     if (!_formKey.currentState!.validate()) return;
 
-    if (_selectedHallId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a hall for this booking')),
-      );
-      return;
-    }
-
-    if (!_isAvailable) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_availabilityWarning ?? 'Selected hall is not available on this date/time'),
-          backgroundColor: AppColors.lost,
-        ),
-      );
-      return;
-    }
-
     final state = Provider.of<AppState>(context, listen: false);
     final totalCost = double.tryParse(_totalCostController.text.trim()) ?? 0.0;
     final advance = double.tryParse(_advanceController.text.trim()) ?? 0.0;
@@ -156,8 +96,8 @@ class _ConvertToBookingDialogState extends State<ConvertToBookingDialog> {
       eventDate: _eventDate,
       startTime: _startTime,
       endTime: _endTime,
-      hallId: _selectedHallId!,
-      hallName: _selectedHallName ?? 'Selected Hall',
+      hallId: 1,
+      hallName: 'Standard Venue',
       totalCost: totalCost,
       advancePaid: advance,
       balanceDue: balance,
@@ -195,8 +135,6 @@ class _ConvertToBookingDialogState extends State<ConvertToBookingDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final halls = Provider.of<AppState>(context).halls;
-
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
@@ -254,36 +192,12 @@ class _ConvertToBookingDialogState extends State<ConvertToBookingDialog> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Hall Selection & Availability Check
+                  // Schedule Confirmation
                   const Text(
-                    'Hall & Schedule Confirmation',
+                    'Schedule Confirmation',
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 10),
-                  DropdownButtonFormField<int>(
-                    value: _selectedHallId,
-                    decoration: const InputDecoration(
-                      labelText: 'Assigned Hall *',
-                      prefixIcon: Icon(Icons.meeting_room),
-                    ),
-                    items: halls
-                        .map((h) => DropdownMenuItem<int>(
-                              value: h.id,
-                              child: Text('${h.name} (Cap: ${h.capacity}, Base: ₹${h.basePrice.toStringAsFixed(0)})'),
-                            ))
-                        .toList(),
-                    onChanged: (val) {
-                      setState(() {
-                        _selectedHallId = val;
-                        if (val != null) {
-                          final h = halls.firstWhere((element) => element.id == val);
-                          _selectedHallName = h.name;
-                        }
-                      });
-                      _checkHallAvailability();
-                    },
-                  ),
-                  const SizedBox(height: 12),
 
                   Row(
                     children: [
@@ -309,7 +223,6 @@ class _ConvertToBookingDialogState extends State<ConvertToBookingDialog> {
                           ),
                           onChanged: (v) {
                             _startTime = v;
-                            _checkHallAvailability();
                           },
                         ),
                       ),
@@ -323,48 +236,10 @@ class _ConvertToBookingDialogState extends State<ConvertToBookingDialog> {
                           ),
                           onChanged: (v) {
                             _endTime = v;
-                            _checkHallAvailability();
                           },
                         ),
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Real-time Availability status banner
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: _isAvailable ? AppColors.confirmedLight : AppColors.lostLight,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: _isAvailable ? AppColors.confirmed : AppColors.lost,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          _isAvailable ? Icons.check_circle : Icons.error,
-                          color: _isAvailable ? AppColors.confirmed : AppColors.lost,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _isCheckingAvailability
-                              ? const Text('Checking hall schedule...')
-                              : Text(
-                                  _isAvailable
-                                      ? 'Hall is available for this date and time slot.'
-                                      : (_availabilityWarning ?? 'Conflict detected'),
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 13,
-                                    color: _isAvailable ? AppColors.confirmed : AppColors.lost,
-                                  ),
-                                ),
-                        ),
-                      ],
-                    ),
                   ),
                   const SizedBox(height: 20),
 

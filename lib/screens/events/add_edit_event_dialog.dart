@@ -31,14 +31,8 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
   late TextEditingController _notesController;
 
   late DateTime _eventDate;
-  int? _selectedHallId;
-  String? _selectedHallName;
   String _status = 'Confirmed';
   String _eventNumber = '';
-
-  bool _isCheckingAvailability = false;
-  bool _isAvailable = true;
-  String? _availabilityWarning;
 
   final List<String> _statusOptions = ['Confirmed', 'In-Progress', 'Completed', 'Cancelled'];
 
@@ -62,18 +56,12 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
     _notesController = TextEditingController(text: ev?.notes ?? '');
 
     _eventDate = ev?.eventDate ?? widget.initialDate ?? DateTime.now().add(const Duration(days: 3));
-    _selectedHallId = ev?.hallId;
-    _selectedHallName = ev?.hallName;
     _status = ev?.status ?? 'Confirmed';
     _eventNumber = ev?.eventNumber ?? '';
 
     if (ev == null) {
       _fetchNextEventNumber();
     }
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkAvailability();
-    });
   }
 
   Future<void> _fetchNextEventNumber() async {
@@ -101,32 +89,6 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
     super.dispose();
   }
 
-  Future<void> _checkAvailability() async {
-    if (_selectedHallId == null) return;
-
-    setState(() {
-      _isCheckingAvailability = true;
-      _availabilityWarning = null;
-    });
-
-    final state = Provider.of<AppState>(context, listen: false);
-    final res = await state.checkHallAvailability(
-      hallId: _selectedHallId!,
-      date: _eventDate,
-      startTime: _startTimeController.text.trim(),
-      endTime: _endTimeController.text.trim(),
-      excludeEventId: widget.event?.id,
-    );
-
-    if (mounted) {
-      setState(() {
-        _isCheckingAvailability = false;
-        _isAvailable = res.isAvailable;
-        _availabilityWarning = res.conflictReason;
-      });
-    }
-  }
-
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -138,29 +100,11 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
       setState(() {
         _eventDate = picked;
       });
-      _checkAvailability();
     }
   }
 
   void _save() async {
     if (!_formKey.currentState!.validate()) return;
-
-    if (_selectedHallId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a hall for this event')),
-      );
-      return;
-    }
-
-    if (!_isAvailable && _status != 'Cancelled') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_availabilityWarning ?? 'Hall is not available at this time slot'),
-          backgroundColor: AppColors.lost,
-        ),
-      );
-      return;
-    }
 
     final state = Provider.of<AppState>(context, listen: false);
     final totalCost = double.tryParse(_totalCostController.text.trim()) ?? 0.0;
@@ -181,8 +125,8 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
       eventDate: _eventDate,
       startTime: _startTimeController.text.trim(),
       endTime: _endTimeController.text.trim(),
-      hallId: _selectedHallId!,
-      hallName: _selectedHallName ?? 'Selected Hall',
+      hallId: widget.event?.hallId ?? 1,
+      hallName: widget.event?.hallName ?? 'Standard Venue',
       totalCost: totalCost,
       advancePaid: advance,
       balanceDue: balance,
@@ -199,8 +143,6 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final halls = Provider.of<AppState>(context).halls;
-
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
@@ -274,8 +216,8 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Event & Hall Details
-                  const Text('Event & Hall Schedule', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+                  // Event Details
+                  const Text('Event Schedule', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
                   const SizedBox(height: 8),
                   Row(
                     children: [
@@ -301,28 +243,6 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
                   ),
                   const SizedBox(height: 10),
 
-                  // Hall Selection
-                  DropdownButtonFormField<int>(
-                    value: _selectedHallId,
-                    decoration: const InputDecoration(labelText: 'Venue / Hall *', prefixIcon: Icon(Icons.meeting_room)),
-                    items: halls
-                        .map((h) => DropdownMenuItem<int>(
-                              value: h.id,
-                              child: Text('${h.name} (${h.capacity} max cap)'),
-                            ))
-                        .toList(),
-                    onChanged: (val) {
-                      setState(() {
-                        _selectedHallId = val;
-                        if (val != null) {
-                          _selectedHallName = halls.firstWhere((element) => element.id == val).name;
-                        }
-                      });
-                      _checkAvailability();
-                    },
-                  ),
-                  const SizedBox(height: 10),
-
                   Row(
                     children: [
                       Expanded(
@@ -339,7 +259,6 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
                         child: TextFormField(
                           controller: _startTimeController,
                           decoration: const InputDecoration(labelText: 'Start Time', prefixIcon: Icon(Icons.access_time)),
-                          onChanged: (_) => _checkAvailability(),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -347,38 +266,10 @@ class _AddEditEventDialogState extends State<AddEditEventDialog> {
                         child: TextFormField(
                           controller: _endTimeController,
                           decoration: const InputDecoration(labelText: 'End Time', prefixIcon: Icon(Icons.access_time)),
-                          onChanged: (_) => _checkAvailability(),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
-
-                  // Availability warning indicator
-                  if (_selectedHallId != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: _isAvailable ? AppColors.confirmedLight : AppColors.lostLight,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(_isAvailable ? Icons.check_circle : Icons.error, color: _isAvailable ? AppColors.confirmed : AppColors.lost, size: 16),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              _isAvailable ? 'Hall is available for this time' : (_availabilityWarning ?? 'Conflict detected'),
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: _isAvailable ? AppColors.confirmed : AppColors.lost,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   const SizedBox(height: 16),
 
                   // Financials

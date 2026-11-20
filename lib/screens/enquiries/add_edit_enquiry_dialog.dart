@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/date_formatters.dart';
 import '../../data/models/enquiry.dart';
-import '../../data/models/hall.dart';
 import '../../providers/app_state.dart';
 
 class AddEditEnquiryDialog extends StatefulWidget {
@@ -29,8 +28,6 @@ class _AddEditEnquiryDialogState extends State<AddEditEnquiryDialog> {
 
   DateTime _preferredDate = DateTime.now().add(const Duration(days: 7));
   DateTime? _followUpDate;
-  int? _selectedHallId;
-  String? _selectedHallName;
   String _status = 'New';
   String _generatedNumber = '';
 
@@ -71,8 +68,6 @@ class _AddEditEnquiryDialogState extends State<AddEditEnquiryDialog> {
 
     if (e != null) {
       _preferredDate = e.preferredDate;
-      _selectedHallId = e.preferredHallId;
-      _selectedHallName = e.preferredHallName;
       _status = e.status;
       _generatedNumber = e.enquiryNumber;
     } else {
@@ -135,8 +130,8 @@ class _AddEditEnquiryDialogState extends State<AddEditEnquiryDialog> {
       guests: guests,
       preferredDate: _preferredDate,
       preferredTime: _preferredTimeController.text.trim(),
-      preferredHallId: _selectedHallId,
-      preferredHallName: _selectedHallName,
+      preferredHallId: null,
+      preferredHallName: null,
       expectedBudget: budget,
       followUpDate: null,
       status: _status,
@@ -153,8 +148,6 @@ class _AddEditEnquiryDialogState extends State<AddEditEnquiryDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final halls = Provider.of<AppState>(context).halls;
-
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
@@ -318,51 +311,14 @@ class _AddEditEnquiryDialogState extends State<AddEditEnquiryDialog> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Hall & Budget
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DropdownButtonFormField<int>(
-                          value: _selectedHallId,
-                          decoration: const InputDecoration(
-                            labelText: 'Preferred Hall',
-                            prefixIcon: Icon(Icons.meeting_room_outlined),
-                          ),
-                          items: [
-                            const DropdownMenuItem<int>(
-                              value: null,
-                              child: Text('Any Hall / Not Decided'),
-                            ),
-                            ...halls.map((h) => DropdownMenuItem<int>(
-                              value: h.id,
-                              child: Text('${h.name} (${h.capacity} cap)'),
-                            )),
-                          ],
-                          onChanged: (val) {
-                            setState(() {
-                              _selectedHallId = val;
-                              if (val != null) {
-                                final hall = halls.firstWhere((h) => h.id == val);
-                                _selectedHallName = hall.name;
-                              } else {
-                                _selectedHallName = null;
-                              }
-                            });
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _budgetController,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            labelText: 'Expected Budget (₹)',
-                            prefixIcon: Icon(Icons.currency_rupee),
-                          ),
-                        ),
-                      ),
-                    ],
+                  // Expected Budget
+                  TextFormField(
+                    controller: _budgetController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Expected Budget (₹)',
+                      prefixIcon: Icon(Icons.currency_rupee),
+                    ),
                   ),
                   const SizedBox(height: 16),
 

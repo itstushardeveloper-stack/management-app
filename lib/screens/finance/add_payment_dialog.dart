@@ -153,7 +153,7 @@ class _AddPaymentDialogState extends State<AddPaymentDialog> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text('${_selectedEvent!.eventNumber} • ${_selectedEvent!.customerName}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                              Text('${_selectedEvent!.eventType} (${_selectedEvent!.hallName})', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                              Text('${_selectedEvent!.eventType} • ${_selectedEvent!.guests} Guests', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                             ],
                           ),
                           Column(

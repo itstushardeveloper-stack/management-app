@@ -37,25 +37,10 @@ class _EnquiryDetailSheetState extends State<EnquiryDetailSheet> {
     final state = Provider.of<AppState>(context, listen: false);
     final history = await state.enquiryRepo.getFollowUpsForEnquiry(_enquiry.id!);
 
-    bool? available;
-    String? msg;
-    if (_enquiry.preferredHallId != null) {
-      final res = await state.checkHallAvailability(
-        hallId: _enquiry.preferredHallId!,
-        date: _enquiry.preferredDate,
-        startTime: _enquiry.startTime ?? '10:00 AM',
-        endTime: _enquiry.endTime ?? '05:00 PM',
-      );
-      available = res.isAvailable;
-      msg = res.conflictReason;
-    }
-
     if (mounted) {
       setState(() {
         _followUps = history;
         _isLoadingFollowUps = false;
-        _isHallAvailable = available;
-        _availabilityMsg = msg;
       });
     }
   }
@@ -372,11 +357,6 @@ class _EnquiryDetailSheetState extends State<EnquiryDetailSheet> {
                         ),
                         _detailRow(Icons.access_time_outlined, 'Preferred Time', _enquiry.preferredTime),
                         _detailRow(
-                          Icons.meeting_room_outlined,
-                          'Preferred Hall',
-                          _enquiry.preferredHallName ?? 'Any Hall',
-                        ),
-                        _detailRow(
                           Icons.currency_rupee,
                           'Expected Budget',
                           CurrencyFormatters.format(_enquiry.expectedBudget),
@@ -384,50 +364,6 @@ class _EnquiryDetailSheetState extends State<EnquiryDetailSheet> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-
-                  // Hall Availability Indicator
-                  if (_isHallAvailable != null)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: _isHallAvailable! ? AppColors.confirmedLight : AppColors.lostLight,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            _isHallAvailable! ? Icons.event_available : Icons.event_busy,
-                            color: _isHallAvailable! ? AppColors.confirmed : AppColors.lost,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _isHallAvailable!
-                                      ? 'Hall Available for Booking'
-                                      : 'Hall Unavailable on this Date/Time',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: _isHallAvailable! ? AppColors.confirmed : AppColors.lost,
-                                  ),
-                                ),
-                                if (_availabilityMsg != null)
-                                  Text(
-                                    _availabilityMsg!,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: _isHallAvailable! ? AppColors.confirmed : AppColors.lost,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   const SizedBox(height: 16),
 
                   // Notes section

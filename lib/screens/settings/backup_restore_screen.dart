@@ -94,7 +94,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
                   ),
                   const SizedBox(height: 12),
                   const Text(
-                    'All event records, customer CRM data, hall bookings, and payments are stored offline directly in your device SQLite database. No external cloud dependency required.',
+                    'All event records, customer CRM data, bookings, and payments are stored offline directly in your device SQLite database. No external cloud dependency required.',
                     style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 14),
@@ -104,7 +104,7 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
                       _dbCountItem('Enquiries', '${state.enquiries.length}'),
                       _dbCountItem('Events', '${state.events.length}'),
                       _dbCountItem('Customers', '${state.customers.length}'),
-                      _dbCountItem('Halls', '${state.halls.length}'),
+                      _dbCountItem('Expenses', '${state.expenses.length}'),
                     ],
                   ),
                 ],

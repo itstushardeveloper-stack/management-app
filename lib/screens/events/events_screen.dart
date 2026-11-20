@@ -18,7 +18,6 @@ class EventsScreen extends StatefulWidget {
 class _EventsScreenState extends State<EventsScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedStatus = 'All';
-  int? _selectedHallId;
 
   final List<String> _statusFilters = ['All', 'Confirmed', 'In-Progress', 'Completed', 'Cancelled'];
 
@@ -33,7 +32,6 @@ class _EventsScreenState extends State<EventsScreen> {
     state.loadEvents(
       searchQuery: _searchController.text.trim(),
       statusFilter: _selectedStatus == 'All' ? null : _selectedStatus,
-      hallIdFilter: _selectedHallId,
     );
   }
 
@@ -48,7 +46,6 @@ class _EventsScreenState extends State<EventsScreen> {
   Widget build(BuildContext context) {
     final state = Provider.of<AppState>(context);
     final events = state.events;
-    final halls = state.halls;
 
     return Scaffold(
       appBar: AppBar(
@@ -134,26 +131,6 @@ class _EventsScreenState extends State<EventsScreen> {
                         ),
                       ),
                     ),
-                    if (halls.isNotEmpty) ...[
-                      const SizedBox(width: 8),
-                      // Hall Dropdown Filter
-                      DropdownButton<int?>(
-                        value: _selectedHallId,
-                        hint: const Text('All Halls', style: TextStyle(fontSize: 12)),
-                        underline: const SizedBox(),
-                        items: [
-                          const DropdownMenuItem<int?>(value: null, child: Text('All Halls', style: TextStyle(fontSize: 12))),
-                          ...halls.map((h) => DropdownMenuItem<int?>(
-                                value: h.id,
-                                child: Text(h.name.split('(')[0], style: const TextStyle(fontSize: 12)),
-                              )),
-                        ],
-                        onChanged: (val) {
-                          setState(() => _selectedHallId = val);
-                          _applyFilter();
-                        },
-                      ),
-                    ],
                   ],
                 ),
               ],
@@ -177,7 +154,6 @@ class _EventsScreenState extends State<EventsScreen> {
                             _searchController.clear();
                             setState(() {
                               _selectedStatus = 'All';
-                              _selectedHallId = null;
                             });
                             _applyFilter();
                           },
@@ -241,9 +217,9 @@ class _EventsScreenState extends State<EventsScreen> {
                                     ),
                                     Row(
                                       children: [
-                                        const Icon(Icons.meeting_room, size: 16, color: AppColors.textSecondary),
+                                        const SizedBox.shrink(),
                                         const SizedBox(width: 6),
-                                        Text(ev.hallName.split('(')[0].trim()),
+                                        const SizedBox.shrink(),
                                       ],
                                     ),
                                   ],

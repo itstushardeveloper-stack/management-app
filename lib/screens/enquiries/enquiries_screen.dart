@@ -232,7 +232,7 @@ class _EnquiriesScreenState extends State<EnquiriesScreen> {
                                 ),
                                 const SizedBox(height: 12),
 
-                                // Event & Hall Info
+                                // Event Info
                                 Row(
                                   children: [
                                     Expanded(
@@ -250,16 +250,7 @@ class _EnquiriesScreenState extends State<EnquiriesScreen> {
                                         ],
                                       ),
                                     ),
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.meeting_room_outlined, size: 16, color: AppColors.textSecondary),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          enq.preferredHallName ?? 'Any Hall',
-                                          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-                                        ),
-                                      ],
-                                    ),
+                                    const SizedBox.shrink(),
                                   ],
                                 ),
                                 const SizedBox(height: 8),

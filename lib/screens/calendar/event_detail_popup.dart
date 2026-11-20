@@ -96,7 +96,7 @@ class _EventDetailPopupState extends State<EventDetailPopup> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Are you sure you want to cancel ${_event.eventNumber} (${_event.customerName})? This will release the hall reservation.'),
+            Text('Are you sure you want to cancel ${_event.eventNumber} (${_event.customerName})? This will release the reservation.'),
             const SizedBox(height: 12),
             TextField(
               controller: reasonController,
@@ -231,7 +231,6 @@ class _EventDetailPopupState extends State<EventDetailPopup> {
                         DateFormatters.formatDayDate(_event.eventDate),
                       ),
                       _row(Icons.access_time, 'Schedule Time', '${_event.startTime} – ${_event.endTime}'),
-                      _row(Icons.meeting_room, 'Hall / Venue', _event.hallName),
                       _row(Icons.phone, 'Customer Mobile', _event.phone),
                       if (_event.email != null && _event.email!.isNotEmpty)
                         _row(Icons.email, 'Email Address', _event.email!),
