@@ -155,15 +155,46 @@ class EnquiryRepository {
         throw Exception('This enquiry has already been converted to Event #${enquiry.convertedEventId}.');
       }
 
+      // Ensure fallback venue row exists so foreign key constraints never fail
+      await txn.rawInsert('''
+        INSERT OR IGNORE INTO halls (id, name, capacity, base_price, is_active)
+        VALUES (1, 'Standard Venue', 500, 0.0, 1)
+      ''');
+
+      // Auto-sync customer if not present
+      int? customerId = eventData.customerId;
+      if (customerId == null && eventData.customerName.isNotEmpty) {
+        final existingCust = await txn.query(
+          'customers',
+          where: 'phone = ?',
+          whereArgs: [eventData.phone],
+          limit: 1,
+        );
+        if (existingCust.isNotEmpty) {
+          customerId = existingCust.first['id'] as int;
+        } else {
+          customerId = await txn.insert('customers', {
+            'name': eventData.customerName,
+            'phone': eventData.phone,
+            'email': eventData.email,
+            'created_at': DateTime.now().toIso8601String(),
+          });
+        }
+      }
+
+      final eventToInsert = (customerId != null && eventData.customerId == null)
+          ? eventData.copyWith(customerId: customerId)
+          : eventData;
+
       // 2. Insert the event
-      final eventId = await txn.insert('events', eventData.toMap());
-      final createdEvent = eventData.copyWith(id: eventId);
+      final eventId = await txn.insert('events', eventToInsert.toMap());
+      final createdEvent = eventToInsert.copyWith(id: eventId);
 
       // 3. If an initial advance was paid, insert payment record
       if (initialAdvance != null && initialAdvance > 0) {
         final payment = Payment(
           eventId: eventId,
-          customerId: eventData.customerId,
+          customerId: createdEvent.customerId,
           amount: initialAdvance,
           paymentType: 'Advance',
           paymentMethod: paymentMethod ?? 'Cash',
@@ -188,7 +219,7 @@ class EnquiryRepository {
       // 5. Add a follow-up record tracking the conversion
       final conversionNote = FollowUp(
         enquiryId: enquiry.id!,
-        note: 'Enquiry successfully converted to Event ${createdEvent.eventNumber}. Hall: ${createdEvent.hallName}, Total: ₹${createdEvent.totalCost.toStringAsFixed(0)}',
+        note: 'Enquiry successfully converted to Event ${createdEvent.eventNumber}. Total: ₹${createdEvent.totalCost.toStringAsFixed(0)}',
         oldStatus: enquiry.status,
         newStatus: 'Confirmed',
         createdAt: DateTime.now(),

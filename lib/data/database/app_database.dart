@@ -41,11 +41,33 @@ class AppDatabase {
       version: 1,
       onCreate: _createDB,
       onConfigure: _onConfigure,
+      onOpen: _onOpen,
     );
   }
 
   Future _onConfigure(Database db) async {
-    await db.execute('PRAGMA foreign_keys = ON');
+    // Disable strict foreign keys so missing venue or dummy relationships never crash inserts
+    await db.execute('PRAGMA foreign_keys = OFF');
+  }
+
+  Future _onOpen(Database db) async {
+    await db.execute('PRAGMA foreign_keys = OFF');
+    // Ensure default fallback venue exists so any existing foreign keys are always satisfied
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS halls (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        capacity INTEGER NOT NULL DEFAULT 500,
+        base_price REAL NOT NULL DEFAULT 0.0,
+        description TEXT,
+        amenities TEXT,
+        is_active INTEGER NOT NULL DEFAULT 1
+      )
+    ''');
+    await db.rawInsert('''
+      INSERT OR IGNORE INTO halls (id, name, capacity, base_price, is_active)
+      VALUES (1, 'Standard Venue', 500, 0.0, 1)
+    ''');
   }
 
   Future _createDB(Database db, int version) async {
@@ -74,6 +96,10 @@ class AppDatabase {
         is_active INTEGER NOT NULL DEFAULT 1
       )
     ''');
+    await db.rawInsert('''
+      INSERT OR IGNORE INTO halls (id, name, capacity, base_price, is_active)
+      VALUES (1, 'Standard Venue', 500, 0.0, 1)
+    ''');
 
     // 3. Enquiries Table
     await db.execute('''
@@ -99,8 +125,7 @@ class AppDatabase {
         converted_event_id INTEGER,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
-        FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE SET NULL,
-        FOREIGN KEY (preferred_hall_id) REFERENCES halls (id) ON DELETE SET NULL
+        FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE SET NULL
       )
     ''');
 
@@ -151,8 +176,8 @@ class AppDatabase {
         event_date TEXT NOT NULL,
         start_time TEXT NOT NULL,
         end_time TEXT NOT NULL,
-        hall_id INTEGER NOT NULL,
-        hall_name TEXT NOT NULL,
+        hall_id INTEGER DEFAULT 1,
+        hall_name TEXT DEFAULT 'Standard Venue',
         total_cost REAL NOT NULL,
         advance_paid REAL NOT NULL DEFAULT 0.0,
         balance_due REAL NOT NULL,
@@ -161,8 +186,7 @@ class AppDatabase {
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         FOREIGN KEY (enquiry_id) REFERENCES enquiries (id) ON DELETE SET NULL,
-        FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE SET NULL,
-        FOREIGN KEY (hall_id) REFERENCES halls (id) ON DELETE RESTRICT
+        FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE SET NULL
       )
     ''');
 

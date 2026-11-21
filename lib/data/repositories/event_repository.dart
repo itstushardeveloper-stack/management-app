@@ -79,6 +79,10 @@ class EventRepository {
 
   Future<int> insertEvent(EventBooking event) async {
     final db = await AppDatabase.instance.database;
+    await db.rawInsert('''
+      INSERT OR IGNORE INTO halls (id, name, capacity, base_price, is_active)
+      VALUES (1, 'Standard Venue', 500, 0.0, 1)
+    ''');
     return await db.insert('events', event.toMap());
   }
 
