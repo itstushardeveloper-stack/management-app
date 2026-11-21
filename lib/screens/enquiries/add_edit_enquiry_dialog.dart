@@ -27,7 +27,6 @@ class _AddEditEnquiryDialogState extends State<AddEditEnquiryDialog> {
   late TextEditingController _notesController;
 
   DateTime _preferredDate = DateTime.now().add(const Duration(days: 7));
-  DateTime? _followUpDate;
   String _status = 'New';
   String _generatedNumber = '';
 

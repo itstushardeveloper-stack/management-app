@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../core/constants/app_colors.dart';
 import '../../core/utils/date_formatters.dart';
 import '../../data/models/expense.dart';
 import '../../providers/app_state.dart';

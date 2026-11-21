@@ -4,7 +4,6 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/currency_formatters.dart';
 import '../../core/utils/date_formatters.dart';
-import '../../data/models/payment.dart';
 import '../../data/models/expense.dart';
 import '../../providers/app_state.dart';
 import 'add_payment_dialog.dart';

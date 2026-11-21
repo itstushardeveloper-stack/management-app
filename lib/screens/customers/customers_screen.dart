@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_colors.dart';
-import '../../core/utils/date_formatters.dart';
-import '../../data/models/customer.dart';
 import '../../providers/app_state.dart';
 import 'add_edit_customer_dialog.dart';
 

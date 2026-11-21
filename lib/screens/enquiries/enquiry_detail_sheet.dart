@@ -23,8 +23,6 @@ class _EnquiryDetailSheetState extends State<EnquiryDetailSheet> {
   late Enquiry _enquiry;
   List<FollowUp> _followUps = [];
   bool _isLoadingFollowUps = true;
-  bool? _isHallAvailable;
-  String? _availabilityMsg;
 
   @override
   void initState() {
@@ -69,7 +67,6 @@ class _EnquiryDetailSheetState extends State<EnquiryDetailSheet> {
   void _showAddFollowUpDialog() {
     final noteController = TextEditingController();
     String newStatus = _enquiry.status;
-    DateTime nextDate = DateTime.now().add(const Duration(days: 3));
 
     showDialog(
       context: context,

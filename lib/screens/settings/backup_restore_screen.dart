@@ -5,7 +5,6 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/date_formatters.dart';
 import '../../data/database/app_database.dart';
-import '../../data/database/sample_data.dart';
 import '../../providers/app_state.dart';
 
 class BackupRestoreScreen extends StatefulWidget {
@@ -44,7 +43,6 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
       };
 
       final jsonString = const JsonEncoder.withIndent('  ').convert(backupData);
-      final filename = 'event_manager_backup_${DateFormatters.formatIsoDate(DateTime.now())}.json';
 
       await Share.share(
         jsonString,
