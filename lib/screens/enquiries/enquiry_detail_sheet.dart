@@ -89,6 +89,7 @@ class _EnquiryDetailSheetState extends State<EnquiryDetailSheet> {
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 value: ['New', 'Follow-up', 'Confirmed', 'Closed'].contains(newStatus) ? newStatus : 'Follow-up',
+                isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Update Status'),
                 items: [
                   'New',

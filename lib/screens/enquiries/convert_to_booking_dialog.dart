@@ -138,230 +138,252 @@ class _ConvertToBookingDialogState extends State<ConvertToBookingDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 580),
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+        constraints: BoxConstraints(
+          maxWidth: 560,
+          maxHeight: MediaQuery.of(context).size.height * 0.88,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Pinned Header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 12, 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Convert Enquiry to Booking',
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            'Enquiry: ${widget.enquiry.enquiryNumber} • ${widget.enquiry.customerName}',
-                            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-                          ),
-                        ],
+                      const Text(
+                        'Convert Enquiry to Booking',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
+                      Text(
+                        'Enquiry: ${widget.enquiry.enquiryNumber} • ${widget.enquiry.customerName}',
+                        style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
                       ),
                     ],
                   ),
-                  const Divider(height: 24),
-
-                  // Summary Card
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryLight,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _summaryItem('Event', widget.enquiry.eventType),
-                        _summaryItem('Guests', '${widget.enquiry.guests}'),
-                        _summaryItem('Customer', widget.enquiry.customerName),
-                        _summaryItem('Mobile', widget.enquiry.phone),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Schedule Confirmation
-                  const Text(
-                    'Schedule Confirmation',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
-                  ),
-                  const SizedBox(height: 10),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: InkWell(
-                          onTap: _pickDate,
-                          child: InputDecorator(
-                            decoration: const InputDecoration(
-                              labelText: 'Event Date *',
-                              prefixIcon: Icon(Icons.calendar_today),
-                            ),
-                            child: Text(DateFormatters.formatDate(_eventDate)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextFormField(
-                          initialValue: _startTime,
-                          decoration: const InputDecoration(
-                            labelText: 'Start Time',
-                            prefixIcon: Icon(Icons.access_time),
-                          ),
-                          onChanged: (v) {
-                            _startTime = v;
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextFormField(
-                          initialValue: _endTime,
-                          decoration: const InputDecoration(
-                            labelText: 'End Time',
-                            prefixIcon: Icon(Icons.access_time),
-                          ),
-                          onChanged: (v) {
-                            _endTime = v;
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Cost & Advance Payment
-                  const Text(
-                    'Financial Agreement & Advance Payment',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _totalCostController,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            labelText: 'Total Cost (₹) *',
-                            prefixIcon: Icon(Icons.currency_rupee),
-                          ),
-                          validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
-                          onChanged: (_) => setState(() {}),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _advanceController,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            labelText: 'Advance Paid (₹)',
-                            prefixIcon: Icon(Icons.payments_outlined),
-                          ),
-                          onChanged: (_) => setState(() {}),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          value: _paymentMethod,
-                          decoration: const InputDecoration(
-                            labelText: 'Advance Payment Mode',
-                            prefixIcon: Icon(Icons.account_balance_wallet_outlined),
-                          ),
-                          items: _paymentMethods
-                              .map((m) => DropdownMenuItem(value: m, child: Text(m)))
-                              .toList(),
-                          onChanged: (v) {
-                            if (v != null) setState(() => _paymentMethod = v);
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Builder(builder: (ctx) {
-                          final cost = double.tryParse(_totalCostController.text) ?? 0.0;
-                          final adv = double.tryParse(_advanceController.text) ?? 0.0;
-                          final balance = (cost - adv).clamp(0.0, double.infinity);
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                            decoration: BoxDecoration(
-                              color: AppColors.surfaceVariant,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: AppColors.outline),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('Remaining Balance Due', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                                Text(
-                                  CurrencyFormatters.format(balance),
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.newEnquiry,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  TextFormField(
-                    controller: _notesController,
-                    maxLines: 2,
-                    decoration: const InputDecoration(
-                      labelText: 'Booking Notes',
-                      hintText: 'Any special terms or banquet instructions...',
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Actions
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Cancel'),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.confirmed,
-                        ),
-                        icon: const Icon(Icons.check_circle_outline),
-                        label: const Text('Confirm & Create Event'),
-                        onPressed: _convert,
-                      ),
-                    ],
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ],
               ),
             ),
-          ),
+            const Divider(height: 1),
+
+            // Scrollable Form Body
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Summary Card
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryLight,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _summaryItem('Event', widget.enquiry.eventType),
+                            _summaryItem('Guests', '${widget.enquiry.guests}'),
+                            _summaryItem('Customer', widget.enquiry.customerName),
+                            _summaryItem('Mobile', widget.enquiry.phone),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Schedule Confirmation
+                      const Text(
+                        'Schedule Confirmation',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Date Row (Full Width - no wrapping!)
+                      InkWell(
+                        onTap: _pickDate,
+                        borderRadius: BorderRadius.circular(10),
+                        child: InputDecorator(
+                          decoration: const InputDecoration(
+                            labelText: 'Event Date *',
+                            prefixIcon: Icon(Icons.calendar_today, size: 20),
+                          ),
+                          child: Text(
+                            DateFormatters.formatDateShort(_eventDate),
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Start & End Time (2 columns)
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              initialValue: _startTime,
+                              decoration: const InputDecoration(
+                                labelText: 'Start Time',
+                                prefixIcon: Icon(Icons.access_time, size: 20),
+                              ),
+                              onChanged: (v) {
+                                _startTime = v;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextFormField(
+                              initialValue: _endTime,
+                              decoration: const InputDecoration(
+                                labelText: 'End Time',
+                                prefixIcon: Icon(Icons.access_time, size: 20),
+                              ),
+                              onChanged: (v) {
+                                _endTime = v;
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Cost & Advance Payment
+                      const Text(
+                        'Financial Agreement & Advance Payment',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _totalCostController,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: 'Total Cost (₹) *',
+                                prefixIcon: Icon(Icons.currency_rupee, size: 20),
+                              ),
+                              validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+                              onChanged: (_) => setState(() {}),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _advanceController,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: 'Advance Paid (₹)',
+                                prefixIcon: Icon(Icons.payments_outlined, size: 20),
+                              ),
+                              onChanged: (_) => setState(() {}),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              value: _paymentMethod,
+                              isExpanded: true,
+                              decoration: const InputDecoration(
+                                labelText: 'Payment Mode',
+                                prefixIcon: Icon(Icons.account_balance_wallet_outlined, size: 20),
+                              ),
+                              items: _paymentMethods
+                                  .map((m) => DropdownMenuItem(value: m, child: Text(m, overflow: TextOverflow.ellipsis)))
+                                  .toList(),
+                              onChanged: (v) {
+                                if (v != null) setState(() => _paymentMethod = v);
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Builder(builder: (ctx) {
+                              final cost = double.tryParse(_totalCostController.text) ?? 0.0;
+                              final adv = double.tryParse(_advanceController.text) ?? 0.0;
+                              final balance = (cost - adv).clamp(0.0, double.infinity);
+                              return Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: AppColors.surfaceVariant,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: AppColors.outline),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text('Balance Due', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                                    Text(
+                                      CurrencyFormatters.format(balance),
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.newEnquiry,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+
+                      TextFormField(
+                        controller: _notesController,
+                        maxLines: 2,
+                        decoration: const InputDecoration(
+                          labelText: 'Booking Notes',
+                          hintText: 'Any special terms or banquet instructions...',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            const Divider(height: 1),
+            // Pinned Footer Buttons
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.confirmed,
+                    ),
+                    icon: const Icon(Icons.check_circle_outline),
+                    label: const Text('Confirm & Create Event'),
+                    onPressed: _convert,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

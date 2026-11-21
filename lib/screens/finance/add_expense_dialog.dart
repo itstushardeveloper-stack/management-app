@@ -71,111 +71,137 @@ class _AddExpenseDialogState extends State<AddExpenseDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 500),
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+        constraints: BoxConstraints(
+          maxWidth: 520,
+          maxHeight: MediaQuery.of(context).size.height * 0.88,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Pinned Header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 12, 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Add Venue Expense', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                      IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
-                    ],
-                  ),
-                  const Divider(height: 20),
-
-                  TextFormField(
-                    controller: _titleController,
-                    decoration: const InputDecoration(labelText: 'Expense Description *', prefixIcon: Icon(Icons.description)),
-                    validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
-                  ),
-                  const SizedBox(height: 12),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: DropdownButtonFormField<String>(
-                          value: _category,
-                          decoration: const InputDecoration(labelText: 'Category'),
-                          items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c, overflow: TextOverflow.ellipsis))).toList(),
-                          onChanged: (v) => setState(() => _category = v!),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _amountController,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(labelText: 'Amount (₹) *', prefixIcon: Icon(Icons.currency_rupee)),
-                          validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: InkWell(
-                          onTap: () async {
-                            final picked = await showDatePicker(
-                              context: context,
-                              initialDate: _expenseDate,
-                              firstDate: DateTime(2020),
-                              lastDate: DateTime(2040),
-                            );
-                            if (picked != null) setState(() => _expenseDate = picked);
-                          },
-                          child: InputDecorator(
-                            decoration: const InputDecoration(labelText: 'Date', prefixIcon: Icon(Icons.calendar_today)),
-                            child: Text(DateFormatters.formatDate(_expenseDate)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: DropdownButtonFormField<int?>(
-                          value: _selectedEventId,
-                          decoration: const InputDecoration(labelText: 'Link Event (Optional)'),
-                          items: [
-                            const DropdownMenuItem<int?>(value: null, child: Text('General Overhead')),
-                            ...events.map((e) => DropdownMenuItem<int?>(
-                                  value: e.id,
-                                  child: Text('${e.eventNumber} - ${e.eventType}', overflow: TextOverflow.ellipsis),
-                                )),
-                          ],
-                          onChanged: (v) => setState(() => _selectedEventId = v),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  TextFormField(
-                    controller: _notesController,
-                    decoration: const InputDecoration(labelText: 'Vendor / Receipt Notes'),
-                  ),
-                  const SizedBox(height: 20),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-                      const SizedBox(width: 10),
-                      ElevatedButton(onPressed: _save, child: const Text('Save Expense')),
-                    ],
-                  ),
+                  const Text('Add Venue Expense', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
                 ],
               ),
             ),
-          ),
+            const Divider(height: 1),
+
+            // Scrollable Form Body
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextFormField(
+                        controller: _titleController,
+                        decoration: const InputDecoration(labelText: 'Expense Description *', prefixIcon: Icon(Icons.description, size: 20)),
+                        validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+                      ),
+                      const SizedBox(height: 12),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              value: _category,
+                              isExpanded: true,
+                              decoration: const InputDecoration(labelText: 'Category'),
+                              items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c, overflow: TextOverflow.ellipsis))).toList(),
+                              onChanged: (v) => setState(() => _category = v!),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _amountController,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(labelText: 'Amount (₹) *', prefixIcon: Icon(Icons.currency_rupee, size: 20)),
+                              validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: () async {
+                                final picked = await showDatePicker(
+                                  context: context,
+                                  initialDate: _expenseDate,
+                                  firstDate: DateTime(2020),
+                                  lastDate: DateTime(2040),
+                                );
+                                if (picked != null) setState(() => _expenseDate = picked);
+                              },
+                              borderRadius: BorderRadius.circular(10),
+                              child: InputDecorator(
+                                decoration: const InputDecoration(labelText: 'Date', prefixIcon: Icon(Icons.calendar_today, size: 20)),
+                                child: Text(
+                                  DateFormatters.formatDateShort(_expenseDate),
+                                  maxLines: 1,
+                                  softWrap: false,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: DropdownButtonFormField<int?>(
+                              value: _selectedEventId,
+                              isExpanded: true,
+                              decoration: const InputDecoration(labelText: 'Link Event (Optional)'),
+                              items: [
+                                const DropdownMenuItem<int?>(value: null, child: Text('General Overhead', overflow: TextOverflow.ellipsis)),
+                                ...events.map((e) => DropdownMenuItem<int?>(
+                                      value: e.id,
+                                      child: Text('${e.eventNumber} - ${e.eventType}', overflow: TextOverflow.ellipsis),
+                                    )),
+                              ],
+                              onChanged: (v) => setState(() => _selectedEventId = v),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      TextFormField(
+                        controller: _notesController,
+                        decoration: const InputDecoration(labelText: 'Vendor / Receipt Notes'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            const Divider(height: 1),
+            // Pinned Footer Buttons
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                  const SizedBox(width: 10),
+                  ElevatedButton(onPressed: _save, child: const Text('Save Expense')),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

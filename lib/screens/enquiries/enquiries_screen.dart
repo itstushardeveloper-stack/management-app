@@ -135,6 +135,7 @@ class _EnquiriesScreenState extends State<EnquiriesScreen> {
                 // Status Filter Dropdown (replaces chips)
                 DropdownButtonFormField<String>(
                   value: _selectedStatus,
+                  isExpanded: true,
                   decoration: const InputDecoration(
                     labelText: 'Filter by Status',
                     prefixIcon: Icon(Icons.filter_list),

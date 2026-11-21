@@ -194,45 +194,50 @@ class HomeShell extends StatelessWidget {
         ),
       ),
       body: _screens[currentIndex],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: currentIndex,
-        onDestinationSelected: (index) => state.setTabIndex(index),
-        destinations: [
-          const NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          NavigationDestination(
-            icon: Badge(
-              isLabelVisible: state.followUpReminders.isNotEmpty,
-              label: Text('${state.followUpReminders.length}'),
-              child: const Icon(Icons.contact_phone_outlined),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: NavigationBar(
+          height: 66,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          selectedIndex: currentIndex,
+          onDestinationSelected: (index) => state.setTabIndex(index),
+          destinations: [
+            const NavigationDestination(
+              icon: Icon(Icons.dashboard_outlined),
+              selectedIcon: Icon(Icons.dashboard),
+              label: 'Dashboard',
             ),
-            selectedIcon: const Icon(Icons.contact_phone),
-            label: 'Enquiries',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.calendar_month_outlined),
-            selectedIcon: Icon(Icons.calendar_month),
-            label: 'Calendar',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.event_available_outlined),
-            selectedIcon: Icon(Icons.event_available),
-            label: 'Events',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.people_outline),
-            selectedIcon: Icon(Icons.people),
-            label: 'Customers',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart),
-            label: 'Finance',
-          ),
-        ],
+            NavigationDestination(
+              icon: Badge(
+                isLabelVisible: state.followUpReminders.isNotEmpty,
+                label: Text('${state.followUpReminders.length}'),
+                child: const Icon(Icons.contact_phone_outlined),
+              ),
+              selectedIcon: const Icon(Icons.contact_phone),
+              label: 'Enquiries',
+            ),
+            const NavigationDestination(
+              icon: Icon(Icons.calendar_month_outlined),
+              selectedIcon: Icon(Icons.calendar_month),
+              label: 'Calendar',
+            ),
+            const NavigationDestination(
+              icon: Icon(Icons.event_available_outlined),
+              selectedIcon: Icon(Icons.event_available),
+              label: 'Events',
+            ),
+            const NavigationDestination(
+              icon: Icon(Icons.people_outline),
+              selectedIcon: Icon(Icons.people),
+              label: 'Customers',
+            ),
+            const NavigationDestination(
+              icon: Icon(Icons.bar_chart_outlined),
+              selectedIcon: Icon(Icons.bar_chart),
+              label: 'Finance',
+            ),
+          ],
+        ),
       ),
     );
   }

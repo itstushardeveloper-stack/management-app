@@ -151,221 +151,244 @@ class _AddEditEnquiryDialogState extends State<AddEditEnquiryDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 580),
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+        constraints: BoxConstraints(
+          maxWidth: 560,
+          maxHeight: MediaQuery.of(context).size.height * 0.88,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Pinned Header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 12, 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.enquiry == null ? 'New Customer Enquiry' : 'Edit Enquiry',
-                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      Text(
+                        widget.enquiry == null ? 'New Customer Enquiry' : 'Edit Enquiry',
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      if (_generatedNumber.isNotEmpty)
+                        Text(
+                          _generatedNumber,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primary,
                           ),
-                          if (_generatedNumber.isNotEmpty)
-                            Text(
-                              _generatedNumber,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                        ],
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
-                      ),
+                        ),
                     ],
                   ),
-                  const Divider(height: 24),
-
-                  // Customer Details Section
-                  const Text(
-                    'Customer Information',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Customer Name *',
-                      prefixIcon: Icon(Icons.person_outline),
-                    ),
-                    validator: (v) => v == null || v.trim().isEmpty ? 'Customer name is required' : null,
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _phoneController,
-                          keyboardType: TextInputType.phone,
-                          decoration: const InputDecoration(
-                            labelText: 'Mobile Number *',
-                            prefixIcon: Icon(Icons.phone_outlined),
-                          ),
-                          validator: (v) => v == null || v.trim().isEmpty ? 'Phone is required' : null,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: const InputDecoration(
-                            labelText: 'Email (Optional)',
-                            prefixIcon: Icon(Icons.email_outlined),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Event Requirements
-                  const Text(
-                    'Event Requirements',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: TextFormField(
-                          controller: _eventTypeController,
-                          decoration: InputDecoration(
-                            labelText: 'Event Type *',
-                            prefixIcon: const Icon(Icons.celebration_outlined),
-                            suffixIcon: PopupMenuButton<String>(
-                              icon: const Icon(Icons.arrow_drop_down),
-                              onSelected: (val) {
-                                _eventTypeController.text = val;
-                              },
-                              itemBuilder: (ctx) => _commonEventTypes
-                                  .map((type) => PopupMenuItem(value: type, child: Text(type)))
-                                  .toList(),
-                            ),
-                          ),
-                          validator: (v) => v == null || v.trim().isEmpty ? 'Event type is required' : null,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 2,
-                        child: TextFormField(
-                          controller: _guestsController,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            labelText: 'Guests *',
-                            prefixIcon: Icon(Icons.group_outlined),
-                          ),
-                          validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Date & Time
-                  Row(
-                    children: [
-                      Expanded(
-                        child: InkWell(
-                          onTap: () => _pickDate(),
-                          borderRadius: BorderRadius.circular(10),
-                          child: InputDecorator(
-                            decoration: const InputDecoration(
-                              labelText: 'Preferred Date *',
-                              prefixIcon: Icon(Icons.calendar_today_outlined),
-                            ),
-                            child: Text(DateFormatters.formatDate(_preferredDate)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _preferredTimeController,
-                          decoration: const InputDecoration(
-                            labelText: 'Preferred Time *',
-                            prefixIcon: Icon(Icons.access_time_outlined),
-                            hintText: 'e.g. 10 AM – 5 PM',
-                          ),
-                          validator: (v) => v == null || v.trim().isEmpty ? 'Time slot is required' : null,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Expected Budget
-                  TextFormField(
-                    controller: _budgetController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Expected Budget (₹)',
-                      prefixIcon: Icon(Icons.currency_rupee),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Status
-                  DropdownButtonFormField<String>(
-                    value: _status,
-                    decoration: const InputDecoration(
-                      labelText: 'Enquiry Status *',
-                      prefixIcon: Icon(Icons.flag_outlined),
-                    ),
-                    items: _statusOptions
-                        .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                        .toList(),
-                    onChanged: (val) {
-                      if (val != null) setState(() => _status = val);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _notesController,
-                    maxLines: 3,
-                    decoration: const InputDecoration(
-                      labelText: 'Notes / Special Requirements',
-                      hintText: 'e.g. Needs stage decoration, DJ music system, catering preferences...',
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Action Buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Cancel'),
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.save_outlined),
-                        label: Text(widget.enquiry == null ? 'Create Enquiry' : 'Save Changes'),
-                        onPressed: _save,
-                      ),
-                    ],
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ],
               ),
             ),
-          ),
+            const Divider(height: 1),
+
+            // Scrollable Form Body
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Customer Details Section
+                      const Text(
+                        'Customer Information',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Customer Name *',
+                          prefixIcon: Icon(Icons.person_outline, size: 20),
+                        ),
+                        validator: (v) => v == null || v.trim().isEmpty ? 'Customer name is required' : null,
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _phoneController,
+                              keyboardType: TextInputType.phone,
+                              decoration: const InputDecoration(
+                                labelText: 'Mobile Number *',
+                                prefixIcon: Icon(Icons.phone_outlined, size: 20),
+                              ),
+                              validator: (v) => v == null || v.trim().isEmpty ? 'Phone is required' : null,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _emailController,
+                              keyboardType: TextInputType.emailAddress,
+                              decoration: const InputDecoration(
+                                labelText: 'Email (Optional)',
+                                prefixIcon: Icon(Icons.email_outlined, size: 20),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Event Requirements
+                      const Text(
+                        'Event Requirements',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: TextFormField(
+                              controller: _eventTypeController,
+                              decoration: InputDecoration(
+                                labelText: 'Event Type *',
+                                prefixIcon: const Icon(Icons.celebration_outlined, size: 20),
+                                suffixIcon: PopupMenuButton<String>(
+                                  icon: const Icon(Icons.arrow_drop_down),
+                                  onSelected: (val) {
+                                    _eventTypeController.text = val;
+                                  },
+                                  itemBuilder: (ctx) => _commonEventTypes
+                                      .map((type) => PopupMenuItem(value: type, child: Text(type)))
+                                      .toList(),
+                                ),
+                              ),
+                              validator: (v) => v == null || v.trim().isEmpty ? 'Event type is required' : null,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            flex: 2,
+                            child: TextFormField(
+                              controller: _guestsController,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: 'Guests *',
+                                prefixIcon: Icon(Icons.group_outlined, size: 20),
+                              ),
+                              validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Date & Time
+                      Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: () => _pickDate(),
+                              borderRadius: BorderRadius.circular(10),
+                              child: InputDecorator(
+                                decoration: const InputDecoration(
+                                  labelText: 'Preferred Date *',
+                                  prefixIcon: Icon(Icons.calendar_today_outlined, size: 20),
+                                ),
+                                child: Text(
+                                  DateFormatters.formatDateShort(_preferredDate),
+                                  maxLines: 1,
+                                  softWrap: false,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextFormField(
+                              controller: _preferredTimeController,
+                              decoration: const InputDecoration(
+                                labelText: 'Preferred Time *',
+                                prefixIcon: Icon(Icons.access_time_outlined, size: 20),
+                                hintText: 'e.g. 10 AM – 5 PM',
+                              ),
+                              validator: (v) => v == null || v.trim().isEmpty ? 'Time slot is required' : null,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Expected Budget
+                      TextFormField(
+                        controller: _budgetController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Expected Budget (₹)',
+                          prefixIcon: Icon(Icons.currency_rupee, size: 20),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Status
+                      DropdownButtonFormField<String>(
+                        value: _status,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Enquiry Status *',
+                          prefixIcon: Icon(Icons.flag_outlined, size: 20),
+                        ),
+                        items: _statusOptions
+                            .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                            .toList(),
+                        onChanged: (val) {
+                          if (val != null) setState(() => _status = val);
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      TextFormField(
+                        controller: _notesController,
+                        maxLines: 3,
+                        decoration: const InputDecoration(
+                          labelText: 'Notes / Special Requirements',
+                          hintText: 'e.g. Needs stage decoration, DJ music system...',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            const Divider(height: 1),
+            // Pinned Footer Buttons - Always Visible!
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.save_outlined),
+                    label: Text(widget.enquiry == null ? 'Create Enquiry' : 'Save Changes'),
+                    onPressed: _save,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

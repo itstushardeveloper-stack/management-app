@@ -147,250 +147,266 @@ class _EventDetailPopupState extends State<EventDetailPopup> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 580),
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              _event.eventNumber,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: statusBg,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                _event.status,
-                                style: TextStyle(
-                                  color: statusColor,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          _event.customerName,
-                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        IconButton(
-                          tooltip: 'Edit Event',
-                          icon: const Icon(Icons.edit_outlined),
-                          onPressed: _editEvent,
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const Divider(height: 20),
-
-                // Key Info Card
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceVariant,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    children: [
-                      _row(Icons.celebration, 'Event Type', _event.eventType),
-                      _row(Icons.group, 'Guest Count', '${_event.guests} Guests'),
-                      _row(
-                        Icons.calendar_today,
-                        'Event Date',
-                        DateFormatters.formatDayDate(_event.eventDate),
-                      ),
-                      _row(Icons.access_time, 'Schedule Time', '${_event.startTime} – ${_event.endTime}'),
-                      _row(Icons.phone, 'Customer Mobile', _event.phone),
-                      if (_event.email != null && _event.email!.isNotEmpty)
-                        _row(Icons.email, 'Email Address', _event.email!),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Financial Overview Card
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.outlineLight),
-                  ),
-                  child: Column(
+        constraints: BoxConstraints(
+          maxWidth: 560,
+          maxHeight: MediaQuery.of(context).size.height * 0.88,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Pinned Top Header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 12, 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _financeColumn('Total Cost', CurrencyFormatters.format(_event.totalCost), AppColors.textPrimary),
-                          _financeColumn('Advance Paid', CurrencyFormatters.format(_event.advancePaid), AppColors.confirmed),
-                          _financeColumn(
-                            'Balance Due',
-                            CurrencyFormatters.format(_event.balanceDue),
-                            _event.balanceDue > 0 ? AppColors.newEnquiry : AppColors.confirmed,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: AppColors.primary,
-                                side: const BorderSide(color: AppColors.primary),
-                              ),
-                              icon: const Icon(Icons.edit_outlined, size: 18),
-                              label: const Text('Edit Event'),
-                              onPressed: _editEvent,
+                          Text(
+                            _event.eventNumber,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: AppColors.confirmed,
-                                side: const BorderSide(color: AppColors.confirmed),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: statusBg,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              _event.status,
+                              style: TextStyle(
+                                color: statusColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
                               ),
-                              icon: const Icon(Icons.payment, size: 18),
-                              label: const Text('Record Payment'),
-                              onPressed: _event.balanceDue > 0 ? _recordPayment : null,
                             ),
                           ),
                         ],
                       ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _event.customerName,
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 16),
-
-                // Event Notes
-                if (_event.notes != null && _event.notes!.isNotEmpty) ...[
-                  const Text('Booking Notes', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                  const SizedBox(height: 6),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceVariant,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(_event.notes!, style: const TextStyle(fontSize: 13)),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-
-                // Payment History Section
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Payment History', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                    if (_event.balanceDue > 0)
-                      TextButton.icon(
-                        icon: const Icon(Icons.add, size: 16),
-                        label: const Text('Add Payment', style: TextStyle(fontSize: 12)),
-                        onPressed: _recordPayment,
+                  Row(
+                    children: [
+                      IconButton(
+                        tooltip: 'Edit Event',
+                        icon: const Icon(Icons.edit_outlined),
+                        onPressed: _editEvent,
                       ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                if (_isLoadingPayments)
-                  const Center(child: Padding(padding: EdgeInsets.all(8.0), child: CircularProgressIndicator()))
-                else if (_payments.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.0),
-                    child: Text('No payment transactions recorded yet.', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
-                  )
-                else
-                  ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _payments.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 6),
-                    itemBuilder: (ctx, i) {
-                      final p = _payments[i];
-                      return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+
+            // Scrollable Content
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Key Info Card
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceVariant,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        children: [
+                          _row(Icons.celebration, 'Event Type', _event.eventType),
+                          _row(Icons.group, 'Guest Count', '${_event.guests} Guests'),
+                          _row(
+                            Icons.calendar_today,
+                            'Event Date',
+                            DateFormatters.formatDayDate(_event.eventDate),
+                          ),
+                          _row(Icons.access_time, 'Schedule Time', '${_event.startTime} – ${_event.endTime}'),
+                          _row(Icons.phone, 'Customer Mobile', _event.phone),
+                          if (_event.email != null && _event.email!.isNotEmpty)
+                            _row(Icons.email, 'Email Address', _event.email!),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Financial Overview Card
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.outlineLight),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _financeColumn('Total Cost', CurrencyFormatters.format(_event.totalCost), AppColors.textPrimary),
+                              _financeColumn('Advance Paid', CurrencyFormatters.format(_event.advancePaid), AppColors.confirmed),
+                              _financeColumn(
+                                'Balance Due',
+                                CurrencyFormatters.format(_event.balanceDue),
+                                _event.balanceDue > 0 ? AppColors.newEnquiry : AppColors.confirmed,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppColors.primary,
+                                    side: const BorderSide(color: AppColors.primary),
+                                  ),
+                                  icon: const Icon(Icons.edit_outlined, size: 18),
+                                  label: const Text('Edit Event'),
+                                  onPressed: _editEvent,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppColors.confirmed,
+                                    side: const BorderSide(color: AppColors.confirmed),
+                                  ),
+                                  icon: const Icon(Icons.payment, size: 18),
+                                  label: const Text('Record Payment'),
+                                  onPressed: _event.balanceDue > 0 ? _recordPayment : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Event Notes
+                    if (_event.notes != null && _event.notes!.isNotEmpty) ...[
+                      const Text('Booking Notes', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      const SizedBox(height: 6),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: AppColors.surfaceVariant,
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Text(_event.notes!, style: const TextStyle(fontSize: 13)),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // Payment History Section
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Payment History', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                        if (_event.balanceDue > 0)
+                          TextButton.icon(
+                            icon: const Icon(Icons.add, size: 16),
+                            label: const Text('Add Payment', style: TextStyle(fontSize: 12)),
+                            onPressed: _recordPayment,
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    if (_isLoadingPayments)
+                      const Center(child: Padding(padding: EdgeInsets.all(8.0), child: CircularProgressIndicator()))
+                    else if (_payments.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8.0),
+                        child: Text('No payment transactions recorded yet.', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                      )
+                    else
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _payments.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 6),
+                        itemBuilder: (ctx, i) {
+                          final p = _payments[i];
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceVariant,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('${p.paymentType} (${p.paymentMethod})', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                                Text(DateFormatters.formatDateShort(p.paymentDate), style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('${p.paymentType} (${p.paymentMethod})', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                    Text(DateFormatters.formatDateShort(p.paymentDate), style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                                  ],
+                                ),
+                                Text(CurrencyFormatters.format(p.amount), style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.confirmed)),
                               ],
                             ),
-                            Text(CurrencyFormatters.format(p.amount), style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.confirmed)),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                const SizedBox(height: 24),
-
-                // Bottom Action Bar: Call, Payment, Cancel
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        icon: const Icon(Icons.phone),
-                        label: const Text('Call'),
-                        onPressed: _callCustomer,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    if (_event.status != 'Cancelled')
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.lost,
-                            side: const BorderSide(color: AppColors.lost),
-                          ),
-                          icon: const Icon(Icons.cancel_outlined),
-                          label: const Text('Cancel Booking'),
-                          onPressed: _cancelEvent,
-                        ),
+                          );
+                        },
                       ),
                   ],
                 ),
-              ],
+              ),
             ),
-          ),
+
+            const Divider(height: 1),
+            // Pinned Footer Actions
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.phone),
+                      label: const Text('Call Customer'),
+                      onPressed: _callCustomer,
+                    ),
+                  ),
+                  if (_event.status != 'Cancelled') ...[
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.lost,
+                          side: const BorderSide(color: AppColors.lost),
+                        ),
+                        icon: const Icon(Icons.cancel_outlined),
+                        label: const Text('Cancel Booking'),
+                        onPressed: _cancelEvent,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
