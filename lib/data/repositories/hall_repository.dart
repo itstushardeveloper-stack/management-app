@@ -1,6 +1,5 @@
 import '../database/app_database.dart';
 import '../models/hall.dart';
-import '../models/hall_hold.dart';
 import '../../core/utils/date_formatters.dart';
 
 class HallAvailabilityResult {
@@ -86,44 +85,7 @@ class HallRepository {
       );
     }
 
-    // 2. Check active temporary holds
-    final nowIso = DateTime.now().toIso8601String();
-    final conflictingHolds = await db.rawQuery('''
-      SELECT * FROM hall_holds
-      WHERE hall_id = ?
-        AND hold_date LIKE ?
-        AND status = 'Active'
-        AND expires_at > ?
-    ''', [hallId, '$dateStr%', nowIso]);
-
-    if (conflictingHolds.isNotEmpty) {
-      final hold = conflictingHolds.first;
-      return HallAvailabilityResult(
-        isAvailable: false,
-        conflictReason: 'Hall has a temporary hold for: ${hold['reason']}',
-      );
-    }
-
     return HallAvailabilityResult(isAvailable: true);
-  }
-
-  // Hall holds
-  Future<int> createHold(HallHold hold) async {
-    final db = await AppDatabase.instance.database;
-    return await db.insert('hall_holds', hold.toMap());
-  }
-
-  Future<List<HallHold>> getActiveHoldsForDate(DateTime date) async {
-    final db = await AppDatabase.instance.database;
-    final dateStr = DateFormatters.formatIsoDate(date);
-    final nowIso = DateTime.now().toIso8601String();
-
-    final result = await db.query(
-      'hall_holds',
-      where: 'hold_date LIKE ? AND status = ? AND expires_at > ?',
-      whereArgs: ['$dateStr%', 'Active', nowIso],
-    );
-    return result.map((map) => HallHold.fromMap(map)).toList();
   }
 }
 

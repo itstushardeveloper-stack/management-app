@@ -12,7 +12,6 @@ import '../data/repositories/hall_repository.dart';
 import '../data/repositories/customer_repository.dart';
 import '../data/repositories/payment_repository.dart';
 import '../data/repositories/expense_repository.dart';
-import '../data/database/sample_data.dart';
 import '../core/utils/date_formatters.dart';
 
 enum CalendarViewType { month, week, day, agenda }
@@ -51,7 +50,6 @@ class AppState extends ChangeNotifier {
   // Calendar Controls
   DateTime _selectedDate = DateTime.now();
   CalendarViewType _calendarView = CalendarViewType.month;
-  int? _calendarHallFilter;
 
   // Loading State
   bool _isLoading = false;
@@ -72,7 +70,6 @@ class AppState extends ChangeNotifier {
 
   DateTime get selectedDate => _selectedDate;
   CalendarViewType get calendarView => _calendarView;
-  int? get calendarHallFilter => _calendarHallFilter;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
@@ -90,7 +87,6 @@ class AppState extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await SampleData.seedIfEmpty();
       await refreshAll();
     } catch (e) {
       _errorMessage = e.toString();
@@ -223,22 +219,6 @@ class AppState extends ChangeNotifier {
     await loadHalls();
   }
 
-  Future<HallAvailabilityResult> checkHallAvailability({
-    required int hallId,
-    required DateTime date,
-    required String startTime,
-    required String endTime,
-    int? excludeEventId,
-  }) async {
-    return await _hallRepo.checkAvailability(
-      hallId: hallId,
-      date: date,
-      startTime: startTime,
-      endTime: endTime,
-      excludeEventId: excludeEventId,
-    );
-  }
-
   // Customers Operations
   Future<void> loadCustomers({String? searchQuery}) async {
     _customers = await _customerRepo.getAllCustomers(searchQuery: searchQuery);
@@ -294,11 +274,6 @@ class AppState extends ChangeNotifier {
 
   void setCalendarView(CalendarViewType view) {
     _calendarView = view;
-    notifyListeners();
-  }
-
-  void setCalendarHallFilter(int? hallId) {
-    _calendarHallFilter = hallId;
     notifyListeners();
   }
 
